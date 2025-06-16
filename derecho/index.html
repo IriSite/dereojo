@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Examen Ojo Derecho | Iri-Site</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container examen">
+    <h2 class="instruccion">
+      Por favor, cúbrete el ojo izquierdo con la mano suavemente, sin apretar. 
+      Colócate a 2 metros de tu dispositivo y menciona en voz alta qué letra es
+    </h2>
+
+    <div class="letra-grande"></div> <!-- letra vacía -->
+
+    <div class="botones-respuesta">
+      <button class="btn" onclick="responder(true)">✅</button>
+      <button class="btn" onclick="responder(false)">❌</button>
+    </div>
+
+    <div class="acciones">
+      <button class="btn escuchar" id="toggleVoiceBtn" onclick="toggleVoice()">🔊 Escuchar instrucciones</button>
+      <button class="btn" id="siguienteBtn" onclick="irASiguiente()" disabled>Siguiente ➡️</button>
+    </div>
+  </div>
+
+  <script>
+    const instrucciones = "Por favor, cúbrete el ojo izquierdo con la mano suavemente, sin apretar. Colócate a 2 metros de tu dispositivo y menciona en voz alta qué letra es";
+    let estaHablando = false;
+    let mensaje;
+
+    function toggleVoice() {
+      const boton = document.getElementById('toggleVoiceBtn');
+      if (estaHablando) {
+        speechSynthesis.cancel();
+        boton.textContent = '🔊 Escuchar instrucciones';
+        estaHablando = false;
+      } else {
+        mensaje = new SpeechSynthesisUtterance(instrucciones);
+        mensaje.lang = 'es-MX';
+        mensaje.rate = 1;
+        mensaje.pitch = 1;
+        mensaje.onend = () => {
+          estaHablando = false;
+          boton.textContent = '🔊 Escuchar instrucciones';
+        };
+        speechSynthesis.speak(mensaje);
+        boton.textContent = '🔇 Detener voz';
+        estaHablando = true;
+      }
+    }
+
+    function responder(vioBien) {
+      speechSynthesis.cancel();
+
+      let aciertos = parseInt(localStorage.getItem('aciertos')) || 0;
+      let errores = parseInt(localStorage.getItem('errores')) || 0;
+
+      if (vioBien) {
+        aciertos++;
+      } else {
+        errores++;
+      }
+
+      localStorage.setItem('aciertos', aciertos);
+      localStorage.setItem('errores', errores);
+
+      const retro = new SpeechSynthesisUtterance(
+        vioBien ? "¡Perfecto! Puedes ver con claridad con tu ojo derecho." :
+                  "Gracias por indicarlo. No se distinguió correctamente con tu ojo derecho."
+      );
+      retro.lang = 'es-MX';
+      speechSynthesis.speak(retro);
+
+      // Activar botón siguiente solo después de responder
+      document.getElementById('siguienteBtn').disabled = false;
+    }
+
+    function irASiguiente() {
+      window.location.href = 'pagina-siguiente.html'; // Cambia a tu siguiente página
+    }
+
+    // Función para generar letra aleatoria A-Z
+    function letraAleatoria() {
+      const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      return letras.charAt(Math.floor(Math.random() * letras.length));
+    }
+
+    window.onload = () => {
+      // Asignar letra aleatoria al cargar la página
+      document.querySelector('.letra-grande').textContent = letraAleatoria();
+
+      toggleVoice();
+    };
+  </script>
+</body>
+</html>
